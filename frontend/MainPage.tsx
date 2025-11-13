@@ -28,7 +28,7 @@ export const MainPage = () => {
   const preset = useSelectedPreset();
 
   const base = useBase();
-  const bucketTable = base.getTableByIdIfExists(preset.applicantTableId);
+  const bucketTable = base.getTableByIdIfExists(preset.bucketTableId);
   const evaluationTable = base.getTableByIdIfExists(preset.evaluationTableId)
 
   const [running, setRunning] = useState(false)
@@ -150,7 +150,7 @@ const ApplicantFieldEditor: React.FC<FieldEditorProps> = ({ preset, index }) => 
   const applicantField = preset.applicantFields[index] ?? { fieldId: '' };
 
   const base = useBase();
-  const applicantTable = base.getTableByIdIfExists(preset.applicantTableId);
+  const applicantTable = base.getTableByIdIfExists(preset.bucketTableId);
 
   const [field, setField] = useState<Field>(applicantTable.getFieldByIdIfExists(applicantField.fieldId));
   const [questionName, setQuestionName] = useState<string>(applicantField.questionName ?? '');
