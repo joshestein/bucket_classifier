@@ -126,8 +126,7 @@ export const MainPage = () => {
       </>)}
 
       <Button
-        // @ts-ignore
-        type="[workaround]"
+        type="button"
         variant="primary"
         icon="play"
         onClick={run}
