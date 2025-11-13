@@ -4,9 +4,12 @@ import { useGlobalConfig } from "@airtable/blocks/ui";
 export type Preset = {
     name: string;
 
+    applicantTableId: string;
+    applicantViewId: string;
+    applicantFields: { fieldId: string, questionName?: string }[];
+
     bucketTableId: string;
     bucketViewId: string;
-    applicantFields: { fieldId: string, questionName?: string }[];
 
     evaluationTableId: string;
     evaluationFields: { fieldId: string, criteria: string }[];
@@ -17,9 +20,12 @@ export type Preset = {
 export const defaultPreset: Preset = {
     name: 'New preset',
 
+    applicantTableId: '',
+    applicantViewId: '',
+    applicantFields: [],
+
     bucketTableId: 'tblEOijHQaV7BnHlh',
     bucketViewId: '',
-    applicantFields: [],
 
     evaluationTableId: 'tblqqU2PPOCeRbQoj',
     evaluationFields: [],
