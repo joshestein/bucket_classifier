@@ -5,7 +5,7 @@ export type Preset = {
     name: string;
 
     bucketTableId: string;
-    applicantViewId: string;
+    bucketViewId: string;
     applicantFields: { fieldId: string, questionName?: string }[];
 
     evaluationTableId: string;
@@ -18,7 +18,7 @@ export const defaultPreset: Preset = {
     name: 'New preset',
 
     bucketTableId: 'tblEOijHQaV7BnHlh',
-    applicantViewId: '',
+    bucketViewId: '',
     applicantFields: [],
 
     evaluationTableId: 'tblqqU2PPOCeRbQoj',

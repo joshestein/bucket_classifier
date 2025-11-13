@@ -44,8 +44,8 @@ export const MainPage = () => {
       if (!preset.applicantFields.length) throw new Error('No input fields selected')
       if (!preset.evaluationFields.length) throw new Error('No output fields selected')
       setResult('Getting applicant records...')
-      const applicantView = bucketTable.getViewById(preset.applicantViewId);
-      const applicantRecords = await applicantView.selectRecordsAsync()
+      const bucketView = bucketTable.getViewById(preset.bucketViewId);
+      const applicantRecords = await bucketView.selectRecordsAsync()
       setResult(renderPreviewText(applicantRecords.records.length, preset.evaluationFields.length))
       const evaluationWritingPromises = await Promise.allSettled(evaluateApplicants(applicantRecords.records, preset, setProgress).map(async (evaluationPromise) => {
         const evaluation = await evaluationPromise;
@@ -72,15 +72,15 @@ export const MainPage = () => {
         <TablePickerSynced
           globalConfigKey={["presets", preset.name, "bucketTableId"]}
           onChange={() => {
-            globalConfig.setAsync(["presets", preset.name, "applicantViewId"], '');
+            globalConfig.setAsync(["presets", preset.name, "bucketViewId"], '');
             globalConfig.setAsync(["presets", preset.name, "applicantFields"], []);
           }}
         />
       </FormField>
       {bucketTable && (<>
-        <FormField label="Applicant view">
+        <FormField label="Bucket view">
           <ViewPickerSynced
-            globalConfigKey={["presets", preset.name, "applicantViewId"]}
+            globalConfigKey={["presets", preset.name, "bucketViewId"]}
             table={bucketTable}
           />
         </FormField>
