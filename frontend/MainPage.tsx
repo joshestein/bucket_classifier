@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   FieldPicker,
   FieldPickerSynced,
@@ -8,6 +9,10 @@ import {
   TablePickerSynced,
   Text,
   useBase,
+  useCursor,
+  useLoadable,
+  useRecords,
+  useWatchable,
   ViewPickerSynced,
 } from "@airtable/blocks/ui";
 import React, { useState } from "react";
@@ -87,29 +92,6 @@ export const MainPage = () => {
           />
         </FormField>
       </>)}
-      <FormField label="Bucket table">
-        <TablePickerSynced
-          globalConfigKey={["presets", preset.name, "bucketTableId"]}
-          onChange={() => {
-            globalConfig.setAsync(["presets", preset.name, "bucketViewId"], '');
-            globalConfig.setAsync(["presets", preset.name, "applicantFields"], []);
-          }}
-        />
-      </FormField>
-      {bucketTable && (<>
-        <FormField label="Bucket view">
-          <ViewPickerSynced
-            globalConfigKey={["presets", preset.name, "bucketViewId"]}
-            table={bucketTable}
-          />
-        </FormField>
-        <FormField label="Answer (input) fields">
-          <div className="flex flex-col gap-2">
-            {preset.applicantFields.map((_, index) => <ApplicantFieldEditor key={index} preset={preset} index={index} />)}
-            <ApplicantFieldEditor key={preset.applicantFields.length} preset={preset} index={preset.applicantFields.length} />
-          </div>
-        </FormField>
-      </>)}
 
       <FormField label="Evaluation table">
         <TablePickerSynced
@@ -142,6 +124,26 @@ export const MainPage = () => {
             shouldAllowPickingNone={true}
           />
         </FormField>
+      </>)}
+
+      <FormField label="Bucket table">
+        <TablePickerSynced
+          globalConfigKey={["presets", preset.name, "bucketTableId"]}
+          onChange={() => {
+            globalConfig.setAsync(["presets", preset.name, "bucketViewId"], '');
+          }}
+        />
+      </FormField>
+      {bucketTable && (<>
+        <FormField label="Bucket view">
+          <ViewPickerSynced
+            globalConfigKey={["presets", preset.name, "bucketViewId"]}
+            table={bucketTable}
+          />
+        </FormField>
+        <div className="mb-4">
+          <SelectedBuckets preset={preset} />
+        </div>
       </>)}
 
       <Button
@@ -245,4 +247,46 @@ const EvaluationFieldEditor: React.FC<FieldEditorProps> = ({ preset, index }) =>
       </FormField>
     </div>
   )
+}
+
+interface SelectedBucketProps {
+  preset: Preset;
+}
+
+const SelectedBuckets: React.FC<SelectedBucketProps> = ({ preset }) => {
+  const base = useBase();
+  const cursor = useCursor();
+  useLoadable(cursor);
+  // Re-render whenever the selected records change.
+  useWatchable(cursor, ['selectedRecordIds']);
+
+  const bucketTable = base.getTableById(preset.bucketTableId);
+  const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
+
+  // TODO: consider making fields configurable
+  const records = useRecords(bucketView ?? bucketTable, { fields: ['Bucket', 'Description'] });
+  // TODO: see if there is a way to just load selected records? I can't find a way looking at the docs? Seems crazy to
+  // have to get all and then filter.
+  // TODO: persist selected buckets, sync with cursor
+  const selectedRecords = records.filter(record => cursor.selectedRecordIds.includes(record.id));
+
+  if (cursor.activeTableId !== bucketTable.id) {
+    return (
+      <Text>Switch to the “{bucketTable.name}” table to select buckets.</Text>
+    );
+  }
+
+  if (selectedRecords.length === 0) {
+    return (
+      <Text>No rows selected. Select one or more bucket records.</Text>
+    );
+  }
+
+  return (
+    <Box marginY={2}>
+      {selectedRecords.map(record => (
+        <Text key={record.id}>• {record.getCellValueAsString('Bucket')}</Text>
+      ))}
+    </Box>
+  );
 }
