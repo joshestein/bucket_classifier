@@ -28,7 +28,7 @@ export const MainPage = () => {
   const preset = useSelectedPreset();
 
   const base = useBase();
-  const applicantTable = base.getTableByIdIfExists(preset.applicantTableId);
+  const bucketTable = base.getTableByIdIfExists(preset.applicantTableId);
   const evaluationTable = base.getTableByIdIfExists(preset.evaluationTableId)
 
   const [running, setRunning] = useState(false)
@@ -39,12 +39,12 @@ export const MainPage = () => {
     setProgress(0);
     setResult(null);
     try {
-      if (!applicantTable) throw new Error('Could not access applicant table')
+      if (!bucketTable) throw new Error('Could not access applicant table')
       if (!evaluationTable) throw new Error('Could not access evaluation table')
       if (!preset.applicantFields.length) throw new Error('No input fields selected')
       if (!preset.evaluationFields.length) throw new Error('No output fields selected')
       setResult('Getting applicant records...')
-      const applicantView = applicantTable.getViewById(preset.applicantViewId);
+      const applicantView = bucketTable.getViewById(preset.applicantViewId);
       const applicantRecords = await applicantView.selectRecordsAsync()
       setResult(renderPreviewText(applicantRecords.records.length, preset.evaluationFields.length))
       const evaluationWritingPromises = await Promise.allSettled(evaluateApplicants(applicantRecords.records, preset, setProgress).map(async (evaluationPromise) => {
@@ -77,11 +77,11 @@ export const MainPage = () => {
           }}
         />
       </FormField>
-      {applicantTable && (<>
+      {bucketTable && (<>
         <FormField label="Applicant view">
           <ViewPickerSynced
             globalConfigKey={["presets", preset.name, "applicantViewId"]}
-            table={applicantTable}
+            table={bucketTable}
           />
         </FormField>
         <FormField label="Answer (input) fields">
