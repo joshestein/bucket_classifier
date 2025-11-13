@@ -17,7 +17,7 @@ export type Preset = {
 export const defaultPreset: Preset = {
     name: 'New preset',
 
-    bucketTableId: 'tblXKnWoXK3R63F6D',
+    bucketTableId: 'tblEOijHQaV7BnHlh',
     applicantViewId: '',
     applicantFields: [],
 
