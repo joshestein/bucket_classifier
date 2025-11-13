@@ -39,7 +39,7 @@ export const MainPage = () => {
     setProgress(0);
     setResult(null);
     try {
-      if (!bucketTable) throw new Error('Could not access applicant table')
+      if (!bucketTable) throw new Error('Could not access bucket table')
       if (!evaluationTable) throw new Error('Could not access evaluation table')
       if (!preset.applicantFields.length) throw new Error('No input fields selected')
       if (!preset.evaluationFields.length) throw new Error('No output fields selected')
@@ -68,9 +68,9 @@ export const MainPage = () => {
 
   return (
     <div className="mb-24">
-      <FormField label="Applicant table">
+      <FormField label="Bucket table">
         <TablePickerSynced
-          globalConfigKey={["presets", preset.name, "applicantTableId"]}
+          globalConfigKey={["presets", preset.name, "bucketTableId"]}
           onChange={() => {
             globalConfig.setAsync(["presets", preset.name, "applicantViewId"], '');
             globalConfig.setAsync(["presets", preset.name, "applicantFields"], []);
