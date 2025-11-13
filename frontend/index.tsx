@@ -34,7 +34,7 @@ function App() {
       <Tab.Group>
         <Tab.List className="p-1 w-auto flex gap-2 sm:gap-4 overflow-x-auto items-center justify-between bg-slate-500">
           <div className="flex items-center">
-            <MyTabLink icon="aiAssistant" label="AI Evaluator" />
+            <MyTabLink icon="aiAssistant" label="Bucket Classifier" />
           </div>
           <PresetManager />
         </Tab.List>
