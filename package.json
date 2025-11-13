@@ -1,5 +1,5 @@
 {
-    "name": "ai-evaluator-extension",
+    "name": "ai-bucket-classifier",
     "license": "AGPL-3.0-only",
     "private": true,
     "scripts": {
