@@ -1,3 +1,5 @@
+import { globalConfig } from '@airtable/blocks';
+import { Field, FieldType } from '@airtable/blocks/models';
 import {
   Box,
   Button,
@@ -15,12 +17,10 @@ import {
   useWatchable,
   ViewPickerSynced,
 } from '@airtable/blocks/ui';
-import React, { useState } from 'react';
-import { Preset, upsertPreset, useSelectedPreset } from '../lib/preset';
-import { globalConfig } from '@airtable/blocks';
-import { Field, FieldType } from '@airtable/blocks/models';
-import { evaluateApplicants } from '../lib/evaluateApplicants';
 import pRetry from 'p-retry';
+import React, { useState } from 'react';
+import { evaluateApplicants } from '../lib/evaluateApplicants';
+import { Preset, upsertPreset, useSelectedPreset } from '../lib/preset';
 
 const renderPreviewText = (numberOfApplicants: number, numberOfEvaluationCriteria: number) => {
   const numberOfItems = numberOfApplicants * numberOfEvaluationCriteria;
