@@ -93,7 +93,19 @@ export const MainPage = () => {
       {applicantTable && (
         <>
           <FormField label="Applicant view">
-            <ViewPickerSynced globalConfigKey={['presets', preset.name, 'applicantViewId']} table={bucketTable} />
+            <ViewPickerSynced globalConfigKey={['presets', preset.name, 'applicantViewId']} table={applicantTable} />
+          </FormField>
+          <FormField label="Answer (input) fields">
+            <div className="flex flex-col gap-2">
+              {preset.applicantFields.map((_, index) => (
+                <ApplicantFieldEditor key={index} preset={preset} index={index} />
+              ))}
+              <ApplicantFieldEditor
+                key={preset.applicantFields.length}
+                preset={preset}
+                index={preset.applicantFields.length}
+              />
+            </div>
           </FormField>
         </>
       )}
