@@ -1,8 +1,8 @@
 import { Record as AirtableRecord, Table as AirtableTable } from '@airtable/blocks/models';
-import { Preset } from './preset';
+import pRetry from 'p-retry';
 import { Prompt } from './getChatCompletion';
 import { getChatCompletion } from './getChatCompletion/openai';
-import pRetry from 'p-retry';
+import { Preset } from './preset';
 
 type SetProgress = (updater: (prev: number) => number) => void;
 
