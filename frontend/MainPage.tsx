@@ -188,7 +188,7 @@ const ApplicantFieldEditor: React.FC<FieldEditorProps> = ({ preset, index }) => 
   const applicantField = preset.applicantFields[index] ?? { fieldId: '' };
 
   const base = useBase();
-  const applicantTable = base.getTableByIdIfExists(preset.bucketTableId);
+  const applicantTable = base.getTableByIdIfExists(preset.applicantTableId);
 
   const [field, setField] = useState<Field>(applicantTable.getFieldByIdIfExists(applicantField.fieldId));
   const [questionName, setQuestionName] = useState<string>(applicantField.questionName ?? '');
