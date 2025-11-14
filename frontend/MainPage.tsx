@@ -263,7 +263,7 @@ const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
   const bucketTable = base.getTableById(preset.bucketTableId);
   const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
 
-  // TODO: consider making fields configurable
+  // TODO: make fields configurable
   const records = useRecords(bucketView ?? bucketTable, { fields: ['Bucket', 'Description'] });
   // TODO: see if there is a way to just load selected records? I can't find a way looking at the docs? Seems crazy to
   // have to get all and then filter.
