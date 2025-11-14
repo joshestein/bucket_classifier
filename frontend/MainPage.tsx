@@ -249,11 +249,11 @@ const EvaluationFieldEditor: React.FC<FieldEditorProps> = ({ preset, index }) =>
   )
 }
 
-interface SelectedBucketProps {
+interface SelectedBucketsProps {
   preset: Preset;
 }
 
-const SelectedBuckets: React.FC<SelectedBucketProps> = ({ preset }) => {
+const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
   const base = useBase();
   const cursor = useCursor();
   useLoadable(cursor);
