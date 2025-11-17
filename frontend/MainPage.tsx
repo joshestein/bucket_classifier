@@ -51,11 +51,13 @@ export const MainPage = () => {
       if (!preset.selectedBucketIds.length) throw new Error('No buckets selected');
 
       setResult('Getting applicant records...');
-      const applicantView = applicantTable.getViewById(preset.applicantViewId);
+      const applicantView = applicantTable.getViewByIdIfExists(preset.applicantViewId);
+      if (!applicantView) throw new Error('Could not access applicant table view');
       const applicantRecords = await applicantView.selectRecordsAsync();
       setResult(renderPreviewText(applicantRecords.records.length));
 
-      const bucketView = bucketTable.getViewById(preset.bucketViewId);
+      const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
+      if (!bucketView) throw new Error('Could not access bucket table view');
       const allBuckets = await bucketView.selectRecordsAsync({ fields: ['Bucket', 'Description'] });
       const selectedBuckets = allBuckets.records.filter((record) => preset.selectedBucketIds.includes(record.id));
 
