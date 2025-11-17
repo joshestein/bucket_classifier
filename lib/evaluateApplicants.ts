@@ -72,7 +72,7 @@ const evaluateApplicant = async (
         `Failed processing record on attempt ${error.attemptNumber} for applicant ${applicant.applicantId}: `,
         error,
       ),
-    retries: 1,
+    retries: 3,
   });
   setProgress((prev) => prev + 1);
 
