@@ -65,37 +65,24 @@ const evaluateApplicant = async (
   preset: Preset,
   setProgress: SetProgress,
 ): Promise<Record<string, number | string>> => {
-  const logsByField = {};
   const applicantString = stringifyApplicantForLLM(applicant);
-  const itemResults = await Promise.all(
-    preset.evaluationFields.map(async ({ fieldId, criteria }) => {
-      // Retry-wrapper around processApplicationPrediction
-      // Common failure reasons:
-      // - the model doesn't follow instructions to output the ranking in the requested format
-      // - the model waffles on too long and hits the token limit
-      // - we hit rate limits, or just transient faults
-      // Retrying (with exponential backoff) appears to fix these problems
-      const { ranking, transcript } = await pRetry(async () => evaluateItem(applicantString, criteria), {
-        onFailedAttempt: (error) =>
-          console.error(`Failed processing record on attempt ${error.attemptNumber} for criteria ${fieldId}: `, error),
-      });
-      logsByField[fieldId] = `# ${fieldId}\n\n` + transcript;
-      setProgress((prev) => prev + 1 / preset.evaluationFields.length);
-      return [fieldId, ranking] as const;
-    }),
-  );
+  const { buckets, transcript } = await pRetry(async () => evaluateItem(applicantString, bucketContext), {
+    onFailedAttempt: (error) =>
+      console.error(
+        `Failed processing record on attempt ${error.attemptNumber} for applicant ${applicant.applicantId}: `,
+        error,
+      ),
+    retries: 1,
+  });
+  setProgress((prev) => prev + 1);
 
-  const combined: Record<string, number | string> = Object.fromEntries(itemResults);
+  const results: Record<string, number | string> = {
+    [preset.evaluationApplicantField]: buckets,
+  };
   if (preset.evaluationLogsField) {
-    // We do this so that the logs are always in the same order, so it's easier to read over them and compare applicants
-    const logs = preset.evaluationFields
-      .map(({ fieldId }) => {
-        return logsByField[fieldId];
-      })
-      .join('\n\n');
-    combined[preset.evaluationLogsField] = logs;
+    results[preset.evaluationLogsField] = `# ${applicant.applicantId}\n\n` + transcript;
   }
-  return combined;
+  return results;
 };
 
 // TODO: test if returning response in JSON is better
