@@ -102,7 +102,11 @@ const evaluateItem = async (applicantString: string, bucketContext: string) => {
     { role: 'user', content: applicantString },
     {
       role: 'system',
-      content: `Classify this applicant into one or more of the following buckets: ${bucketContext}
+      content: `Classify this applicant into one or more of the following buckets:
+      
+${bucketContext}
+
+---
 
 You should ignore general statements or facts about the world, and focus on what the applicant themselves has achieved. You do not need to structure your assessment similar to the answers the user has given.
 
