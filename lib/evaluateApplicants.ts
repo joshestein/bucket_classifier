@@ -104,17 +104,21 @@ const extractFinalRanking = (text: string, rankingKeyword = 'FINAL_RANKING'): nu
 
 const evaluateItem = async (
   applicantString: string,
-  criteriaString: string,
+  bucketContext: string,
 ): Promise<{ transcript: string; ranking: number }> => {
   const prompt: Prompt = [
     { role: 'user', content: applicantString },
     {
       role: 'system',
-      content: `Evaluate the application above, based on the following rubric: ${criteriaString}
+      content: `Classify this applicant into one or more of the following buckets: ${bucketContext}
 
 You should ignore general statements or facts about the world, and focus on what the applicant themselves has achieved. You do not need to structure your assessment similar to the answers the user has given.
 
-Before stating your rating, first explain your reasoning thinking step by step. Then afterwards output your final answer by stating 'FINAL_RANKING = ' and then the relevant integer between the minimum and maximum values in the rubric.`,
+Rank the buckets by fit, with confidence scores (0-100%). Only include buckets where the confidence is at least 30%. If no buckets are a good fit, return an empty list.
+
+Provide your answer in the following format:
+
+BUCKET_RANKINGS = Bucket A: 90%, Bucket B: 75%`,
     },
   ];
   const completion = await getChatCompletion(prompt);
