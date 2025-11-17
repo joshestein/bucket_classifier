@@ -113,10 +113,7 @@ const extractFinalRanking = (text: string, rankingKeyword = 'FINAL_RANKING'): nu
   throw new Error(`Missing final ranking (${rankingKeyword})`);
 };
 
-const evaluateItem = async (
-  applicantString: string,
-  bucketContext: string,
-): Promise<{ transcript: string; ranking: number }> => {
+const evaluateItem = async (applicantString: string, bucketContext: string) => {
   const prompt: Prompt = [
     { role: 'user', content: applicantString },
     {
