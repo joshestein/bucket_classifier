@@ -138,6 +138,13 @@ export const MainPage = () => {
               table={evaluationTable}
             />
           </FormField>
+          <FormField label="Bucket classification field">
+            <FieldPickerSynced
+              allowedTypes={[FieldType.MULTILINE_TEXT]}
+              globalConfigKey={['presets', preset.name, 'bucketClassificationField']}
+              table={evaluationTable}
+            />
+          </FormField>
           <FormField label="(optional) Logs field">
             <FieldPickerSynced
               allowedTypes={[FieldType.SINGLE_LINE_TEXT, FieldType.MULTILINE_TEXT, FieldType.RICH_TEXT]}
