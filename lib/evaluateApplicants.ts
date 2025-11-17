@@ -21,6 +21,7 @@ export const evaluateApplicants = (
     };
     const result: Record<string, unknown> = await evaluateApplicant(
       convertToPlainRecord(applicant, preset),
+      extractBucketContext(selectedBuckets),
       preset,
       innerSetProgress,
     );
@@ -41,6 +42,14 @@ const convertToPlainRecord = (applicant: AirtableRecord, preset: Preset): Record
   return record;
 };
 
+const extractBucketContext = (buckets: AirtableRecord[]): string => {
+  return buckets
+    .map((bucket) => {
+      return `### ${bucket.getCellValueAsString('Bucket')}\n\n${bucket.getCellValueAsString('Description')}`;
+    })
+    .join('\n\n');
+};
+
 // TODO: test if plain JSON is better
 const stringifyApplicantForLLM = (applicant: Record<string, string>): string => {
   return Object.entries(applicant)
@@ -51,6 +60,7 @@ const stringifyApplicantForLLM = (applicant: Record<string, string>): string => 
 
 const evaluateApplicant = async (
   applicant: Record<string, string>,
+  bucketContext: string,
   preset: Preset,
   setProgress: SetProgress,
 ): Promise<Record<string, number | string>> => {
