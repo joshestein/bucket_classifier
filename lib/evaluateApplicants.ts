@@ -80,7 +80,7 @@ const evaluateApplicant = async (
     [preset.bucketClassificationField]: buckets,
   };
   if (preset.evaluationLogsField) {
-    results[preset.evaluationLogsField] = `# ${applicant.applicantId}\n\n` + transcript;
+    results[preset.evaluationLogsField] = transcript;
   }
   return results;
 };
