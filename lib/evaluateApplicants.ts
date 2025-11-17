@@ -108,7 +108,7 @@ You should ignore general statements or facts about the world, and focus on what
 
 Rank the buckets by fit, with confidence scores (0-100%). Only include buckets where the confidence is at least 30%. If no buckets are a good fit, return an empty list.
 
-Provide your answer in the following format:
+Before stating your rating, first explain your reasoning thinking step by step. Then afterwards output your final answer in the following format:
 
 BUCKET_RANKINGS
 Bucket A: 90
