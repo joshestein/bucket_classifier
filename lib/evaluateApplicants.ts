@@ -111,7 +111,7 @@ Rank the buckets by fit, with confidence scores (0-100%). Only include buckets w
 Before stating your rating, first explain your reasoning thinking step by step. Then afterwards output your final answer in the following format:
 
 BUCKET_RANKINGS
-Bucket A: 90
+Bucket A: 90%
 Bucket B: 75%
 Bucket C: 40%`,
     },
