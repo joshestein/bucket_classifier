@@ -98,7 +98,7 @@ const evaluateApplicant = async (
 };
 
 // TODO: test if returning response in JSON is better
-const extractFinalRanking = (text: string, rankingKeyword = 'FINAL_RANKING'): number => {
+const extractRankedBuckets = (text: string, rankingKeyword = 'BUCKET_RANKINGS') => {
   const regex = new RegExp(`${rankingKeyword}\\s*=\\s*([\\d\\.]+)`);
   const match = text.match(regex);
 
@@ -133,6 +133,6 @@ BUCKET_RANKINGS = Bucket A: 90%, Bucket B: 75%`,
   const transcript = [...prompt, { role: 'assistant', content: completion }]
     .map((message) => `## ${message.role}\n\n${message.content}`)
     .join('\n\n');
-  const ranking = extractFinalRanking(completion);
-  return { transcript, ranking };
+  const buckets = extractRankedBuckets(completion);
+  return { transcript, buckets };
 };
