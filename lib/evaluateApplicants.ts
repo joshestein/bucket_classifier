@@ -87,7 +87,7 @@ const evaluateApplicant = async (
 
 // TODO: test if returning response in JSON is better
 const extractRankedBuckets = (text: string, rankingKeyword = 'BUCKET_RANKINGS') => {
-  const regex = new RegExp(`${rankingKeyword}\\s*=\\s*(.+)`, 'i');
+  const regex = new RegExp(`${rankingKeyword}\\s*\\n((?:.+:\\s*\\d+%\\s*\\n?)+)`, 'mi');
   const match = text.match(regex);
 
   if (match && match[1]) {
@@ -110,7 +110,10 @@ Rank the buckets by fit, with confidence scores (0-100%). Only include buckets w
 
 Provide your answer in the following format:
 
-BUCKET_RANKINGS = Bucket A: 90%, Bucket B: 75%`,
+BUCKET_RANKINGS
+Bucket A: 90
+Bucket B: 75%
+Bucket C: 40%`,
     },
   ];
   const completion = await getChatCompletion(prompt);
