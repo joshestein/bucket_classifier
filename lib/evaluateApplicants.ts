@@ -100,18 +100,14 @@ const evaluateApplicant = async (
 
 // TODO: test if returning response in JSON is better
 const extractRankedBuckets = (text: string, rankingKeyword = 'BUCKET_RANKINGS') => {
-  const regex = new RegExp(`${rankingKeyword}\\s*=\\s*([\\d\\.]+)`);
+  const regex = new RegExp(`${rankingKeyword}\\s*=\\s*(.+)`, 'i');
   const match = text.match(regex);
 
   if (match && match[1]) {
-    const asInt = parseInt(match[1]);
-    if (Math.abs(asInt - parseFloat(match[1])) > 0.01) {
-      throw new Error(`Non-integer final ranking: ${match[1]} (${rankingKeyword})`);
-    }
-    return parseInt(match[1]);
+    return match[1].trim();
   }
 
-  throw new Error(`Missing final ranking (${rankingKeyword})`);
+  throw new Error(`Missing bucket ranking (${rankingKeyword})`);
 };
 
 const evaluateItem = async (applicantString: string, bucketContext: string) => {
