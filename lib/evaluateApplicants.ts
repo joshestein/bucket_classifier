@@ -37,6 +37,7 @@ const convertToPlainRecord = (applicant: AirtableRecord, preset: Preset): Record
     const questionName =
       field.questionName ?? ((applicant as any).parentTable as AirtableTable).getFieldById(field.fieldId).name;
     record[questionName] = applicant.getCellValueAsString(field.fieldId);
+    record['applicantId'] = applicant.id;
   });
 
   return record;
