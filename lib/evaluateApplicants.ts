@@ -11,6 +11,7 @@ type SetProgress = (updater: (prev: number) => number) => void;
  */
 export const evaluateApplicants = (
   applicants: AirtableRecord[],
+  selectedBuckets: AirtableRecord[],
   preset: Preset,
   setProgress: SetProgress,
 ): Promise<Record<string, unknown>>[] => {

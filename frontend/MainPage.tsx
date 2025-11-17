@@ -50,20 +50,29 @@ export const MainPage = () => {
       if (!evaluationTable) throw new Error('Could not access evaluation table');
       if (!preset.applicantFields.length) throw new Error('No input fields selected');
       if (!preset.evaluationFields.length) throw new Error('No output fields selected');
+      if (!preset.selectedBucketIds.length) throw new Error('No buckets selected');
+
       setResult('Getting applicant records...');
       const applicantView = applicantTable.getViewById(preset.applicantViewId);
       const applicantRecords = await applicantView.selectRecordsAsync();
       setResult(renderPreviewText(applicantRecords.records.length, preset.evaluationFields.length));
+
+      const bucketView = bucketTable.getViewById(preset.bucketViewId);
+      const allBuckets = await bucketView.selectRecordsAsync({ fields: ['Bucket', 'Description'] });
+      const selectedBuckets = allBuckets.records.filter((record) => preset.selectedBucketIds.includes(record.id));
+
       const evaluationWritingPromises = await Promise.allSettled(
-        evaluateApplicants(applicantRecords.records, preset, setProgress).map(async (evaluationPromise) => {
-          const evaluation = await evaluationPromise;
-          console.log(
-            `Evaluated applicant ${evaluation[preset.evaluationApplicantField]?.[0]?.id}, uploading to Airtable...`,
-          );
-          // It would be more efficient to do this as a batch. However, this caused us far more trouble that it was worth with the Airtable API - hitting size limits etc.
-          // Retrying helps handle other Airtable rate limits or intermittent faults
-          return pRetry(() => evaluationTable.createRecordAsync(evaluation));
-        }),
+        evaluateApplicants(applicantRecords.records, selectedBuckets, preset, setProgress).map(
+          async (evaluationPromise) => {
+            const evaluation = await evaluationPromise;
+            console.log(
+              `Evaluated applicant ${evaluation[preset.evaluationApplicantField]?.[0]?.id}, uploading to Airtable...`,
+            );
+            // It would be more efficient to do this as a batch. However, this caused us far more trouble that it was worth with the Airtable API - hitting size limits etc.
+            // Retrying helps handle other Airtable rate limits or intermittent faults
+            return pRetry(() => evaluationTable.createRecordAsync(evaluation));
+          },
+        ),
       );
       const successes = evaluationWritingPromises.filter((p) => p.status === 'fulfilled');
       const failures = evaluationWritingPromises.filter((p) => p.status === 'rejected');
