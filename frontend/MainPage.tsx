@@ -18,7 +18,7 @@ import {
   ViewPickerSynced,
 } from '@airtable/blocks/ui';
 import pRetry from 'p-retry';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { evaluateApplicants } from '../lib/evaluateApplicants';
 import { Preset, upsertPreset, useSelectedPreset } from '../lib/preset';
 
@@ -296,6 +296,15 @@ const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
   // Re-render whenever the selected records change.
   useWatchable(cursor, ['selectedRecordIds']);
 
+  useEffect(() => {
+    const currentIds = preset.selectedBucketIds || [];
+    const newIds = cursor.selectedRecordIds || [];
+
+    if (currentIds.length !== newIds.length || !newIds.every((id) => currentIds.includes(id))) {
+      globalConfig.setAsync(['presets', preset.name, 'selectedBucketIds'], newIds);
+    }
+  }, [preset.name, preset.selectedBucketIds, cursor.selectedRecordIds]);
+
   const bucketTable = base.getTableById(preset.bucketTableId);
   const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
 
@@ -303,7 +312,6 @@ const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
   const records = useRecords(bucketView ?? bucketTable, { fields: ['Bucket', 'Description'] });
   // TODO: see if there is a way to just load selected records? I can't find a way looking at the docs? Seems crazy to
   // have to get all and then filter.
-  // TODO: persist selected buckets, sync with cursor
   const selectedRecords = records.filter((record) => cursor.selectedRecordIds.includes(record.id));
 
   if (cursor.activeTableId !== bucketTable.id) {
