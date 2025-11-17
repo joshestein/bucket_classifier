@@ -77,7 +77,7 @@ const evaluateApplicant = async (
   setProgress((prev) => prev + 1);
 
   const results: Record<string, number | string> = {
-    [preset.evaluationApplicantField]: buckets,
+    [preset.bucketClassificationField]: buckets,
   };
   if (preset.evaluationLogsField) {
     results[preset.evaluationLogsField] = `# ${applicant.applicantId}\n\n` + transcript;
