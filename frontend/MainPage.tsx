@@ -22,11 +22,10 @@ import React, { useEffect, useState } from 'react';
 import { evaluateApplicants } from '../lib/evaluateApplicants';
 import { Preset, upsertPreset, useSelectedPreset } from '../lib/preset';
 
-const renderPreviewText = (numberOfApplicants: number, numberOfEvaluationCriteria: number) => {
-  const numberOfItems = numberOfApplicants * numberOfEvaluationCriteria;
+const renderPreviewText = (numberOfItems: number) => {
   const timeEstimateMins = ((numberOfItems * 0.9) / 60).toFixed(1); // speed roughly for gpt-4-1106-preview, at 30 request concurrency
   const costEstimateGbp = (numberOfItems * 0.011).toFixed(2); // pricing roughly for gpt-4-1106-preview
-  return `Found ${numberOfApplicants} records, and ${numberOfEvaluationCriteria} evaluation criteria for a total of ${numberOfItems} items to process. Estimated time: ${timeEstimateMins} min. Estimated cost: £${costEstimateGbp}. To cancel, please close the entire browser tab.`;
+  return `Found ${numberOfItems} records to process. Estimated time: ${timeEstimateMins} min. Estimated cost: £${costEstimateGbp}. To cancel, please close the entire browser tab.`;
 };
 
 export const MainPage = () => {
@@ -49,13 +48,12 @@ export const MainPage = () => {
       if (!bucketTable) throw new Error('Could not access bucket table');
       if (!evaluationTable) throw new Error('Could not access evaluation table');
       if (!preset.applicantFields.length) throw new Error('No input fields selected');
-      if (!preset.evaluationFields.length) throw new Error('No output fields selected');
       if (!preset.selectedBucketIds.length) throw new Error('No buckets selected');
 
       setResult('Getting applicant records...');
       const applicantView = applicantTable.getViewById(preset.applicantViewId);
       const applicantRecords = await applicantView.selectRecordsAsync();
-      setResult(renderPreviewText(applicantRecords.records.length, preset.evaluationFields.length));
+      setResult(renderPreviewText(applicantRecords.records.length));
 
       const bucketView = bucketTable.getViewById(preset.bucketViewId);
       const allBuckets = await bucketView.selectRecordsAsync({ fields: ['Bucket', 'Description'] });
@@ -123,25 +121,12 @@ export const MainPage = () => {
         <TablePickerSynced
           globalConfigKey={['presets', preset.name, 'evaluationTableId']}
           onChange={() => {
-            globalConfig.setAsync(['presets', preset.name, 'evaluationFields'], []);
             globalConfig.setAsync(['presets', preset.name, 'evaluationLogsField'], undefined);
           }}
         />
       </FormField>
       {evaluationTable && (
         <>
-          <FormField label="Score (output) fields">
-            <div className="flex flex-col gap-2">
-              {preset.evaluationFields.map((_, index) => (
-                <EvaluationFieldEditor key={index} preset={preset} index={index} />
-              ))}
-              <EvaluationFieldEditor
-                key={preset.evaluationFields.length}
-                preset={preset}
-                index={preset.evaluationFields.length}
-              />
-            </div>
-          </FormField>
           <FormField label="Applicant field">
             <FieldPickerSynced
               allowedTypes={[FieldType.MULTIPLE_RECORD_LINKS]}
@@ -236,57 +221,6 @@ const ApplicantFieldEditor: React.FC<FieldEditorProps> = ({ preset, index }) => 
           onChange={(event) => {
             setQuestionName(event.target.value);
             saveField({ ...applicantField, questionName: event.target.value || undefined });
-          }}
-        />
-      </FormField>
-    </div>
-  );
-};
-
-const EvaluationFieldEditor: React.FC<FieldEditorProps> = ({ preset, index }) => {
-  const evaluationField = preset.evaluationFields[index] ?? { fieldId: '', criteria: '' };
-
-  const base = useBase();
-  const evaluationTable = base.getTableByIdIfExists(preset.evaluationTableId);
-
-  const [field, setField] = useState<Field>(evaluationTable.getFieldByIdIfExists(evaluationField.fieldId));
-  const [criteria, setCriteria] = useState<string>(evaluationField.criteria ?? '');
-
-  const saveField = (evaluationField: Preset['evaluationFields'][number]) => {
-    // delete
-    if (!evaluationField.fieldId) {
-      upsertPreset({ ...preset, evaluationFields: preset.evaluationFields.filter((_, i) => i !== index) });
-      // create
-    } else if (index >= preset.evaluationFields.length) {
-      upsertPreset({ ...preset, evaluationFields: [...preset.evaluationFields, evaluationField] });
-    } else {
-      upsertPreset({
-        ...preset,
-        evaluationFields: preset.evaluationFields.map((original, i) => (i === index ? evaluationField : original)),
-      });
-    }
-  };
-
-  return (
-    <div className="grid grid-cols-2 gap-2 rounded border bg-white p-2 shadow">
-      <FormField label="Output field" className="mb-0">
-        <FieldPicker
-          allowedTypes={[FieldType.NUMBER, FieldType.PERCENT, FieldType.RATING]}
-          table={evaluationTable}
-          shouldAllowPickingNone={true}
-          onChange={(field) => {
-            setField(field);
-            saveField({ ...evaluationField, fieldId: field?.id });
-          }}
-          field={field}
-        />
-      </FormField>
-      <FormField label="Evaluation criteria" className="mb-0">
-        <Input
-          value={criteria}
-          onChange={(event) => {
-            setCriteria(event.target.value);
-            saveField({ ...evaluationField, criteria: event.target.value || undefined });
           }}
         />
       </FormField>

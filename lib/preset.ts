@@ -13,7 +13,6 @@ export type Preset = {
   selectedBucketIds: string[];
 
   evaluationTableId: string;
-  evaluationFields: { fieldId: string; criteria: string }[];
   evaluationApplicantField: string;
   evaluationLogsField?: string;
 };
@@ -30,7 +29,6 @@ export const defaultPreset: Preset = {
   selectedBucketIds: [],
 
   evaluationTableId: 'tblqqU2PPOCeRbQoj',
-  evaluationFields: [],
   evaluationApplicantField: 'fldAVaTU0Btgt1i3p',
   evaluationLogsField: undefined,
 };
