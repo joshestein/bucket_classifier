@@ -280,11 +280,11 @@ const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
   const selectedRecords = records.filter((record) => cursor.selectedRecordIds.includes(record.id));
 
   if (cursor.activeTableId !== bucketTable.id) {
-    return <Text>Switch to the “{bucketTable.name}” table to select buckets.</Text>;
+    return <Text className="font-bold">Switch to the “{bucketTable.name}” table to select buckets.</Text>;
   }
 
   if (selectedRecords.length === 0) {
-    return <Text>No rows selected. Select one or more bucket records.</Text>;
+    return <Text className="font-bold">No rows selected. Select one or more bucket records.</Text>;
   }
 
   return (
