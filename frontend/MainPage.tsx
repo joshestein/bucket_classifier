@@ -92,88 +92,94 @@ export const MainPage = () => {
 
   return (
     <div className="mb-24">
-      <FormField label="Applicant table">
-        <TablePickerSynced
-          globalConfigKey={['presets', preset.name, 'applicantTableId']}
-          onChange={() => {
-            globalConfig.setAsync(['presets', preset.name, 'applicantViewId'], '');
-            globalConfig.setAsync(['presets', preset.name, 'applicantFields'], []);
-          }}
-        />
-      </FormField>
-      {applicantTable && (
-        <>
-          <FormField label="Applicant view">
-            <ViewPickerSynced globalConfigKey={['presets', preset.name, 'applicantViewId']} table={applicantTable} />
-          </FormField>
-          <FormField label="Answer (input) fields">
-            <div className="flex flex-col gap-2">
-              {preset.applicantFields.map((_, index) => (
-                <ApplicantFieldEditor key={index} preset={preset} index={index} />
-              ))}
-              <ApplicantFieldEditor
-                key={preset.applicantFields.length}
-                preset={preset}
-                index={preset.applicantFields.length}
+      <div className="rounded-md border p-2">
+        <FormField label="Applicant table">
+          <TablePickerSynced
+            globalConfigKey={['presets', preset.name, 'applicantTableId']}
+            onChange={() => {
+              globalConfig.setAsync(['presets', preset.name, 'applicantViewId'], '');
+              globalConfig.setAsync(['presets', preset.name, 'applicantFields'], []);
+            }}
+          />
+        </FormField>
+        {applicantTable && (
+          <>
+            <FormField label="Applicant view">
+              <ViewPickerSynced globalConfigKey={['presets', preset.name, 'applicantViewId']} table={applicantTable} />
+            </FormField>
+            <FormField label="Answer (input) fields">
+              <div className="flex flex-col gap-2">
+                {preset.applicantFields.map((_, index) => (
+                  <ApplicantFieldEditor key={index} preset={preset} index={index} />
+                ))}
+                <ApplicantFieldEditor
+                  key={preset.applicantFields.length}
+                  preset={preset}
+                  index={preset.applicantFields.length}
+                />
+              </div>
+            </FormField>
+          </>
+        )}
+      </div>
+
+      <div className="rounded-md border p-2">
+        <FormField label="Evaluation table">
+          <TablePickerSynced
+            globalConfigKey={['presets', preset.name, 'evaluationTableId']}
+            onChange={() => {
+              globalConfig.setAsync(['presets', preset.name, 'evaluationLogsField'], undefined);
+            }}
+          />
+        </FormField>
+        {evaluationTable && (
+          <>
+            <FormField label="Applicant field">
+              <FieldPickerSynced
+                allowedTypes={[FieldType.MULTIPLE_RECORD_LINKS]}
+                globalConfigKey={['presets', preset.name, 'evaluationApplicantField']}
+                table={evaluationTable}
               />
+            </FormField>
+            <FormField label="Bucket classification field">
+              <FieldPickerSynced
+                allowedTypes={[FieldType.MULTILINE_TEXT]}
+                globalConfigKey={['presets', preset.name, 'bucketClassificationField']}
+                table={evaluationTable}
+              />
+            </FormField>
+            <FormField label="(optional) Logs field">
+              <FieldPickerSynced
+                allowedTypes={[FieldType.SINGLE_LINE_TEXT, FieldType.MULTILINE_TEXT, FieldType.RICH_TEXT]}
+                globalConfigKey={['presets', preset.name, 'evaluationLogsField']}
+                table={evaluationTable}
+                shouldAllowPickingNone={true}
+              />
+            </FormField>
+          </>
+        )}
+      </div>
+
+      <div className="rounded-md border p-2">
+        <FormField label="Bucket table">
+          <TablePickerSynced
+            globalConfigKey={['presets', preset.name, 'bucketTableId']}
+            onChange={() => {
+              globalConfig.setAsync(['presets', preset.name, 'bucketViewId'], '');
+            }}
+          />
+        </FormField>
+        {bucketTable && (
+          <>
+            <FormField label="Bucket view">
+              <ViewPickerSynced globalConfigKey={['presets', preset.name, 'bucketViewId']} table={bucketTable} />
+            </FormField>
+            <div className="mb-4">
+              <SelectedBuckets preset={preset} />
             </div>
-          </FormField>
-        </>
-      )}
-
-      <FormField label="Evaluation table">
-        <TablePickerSynced
-          globalConfigKey={['presets', preset.name, 'evaluationTableId']}
-          onChange={() => {
-            globalConfig.setAsync(['presets', preset.name, 'evaluationLogsField'], undefined);
-          }}
-        />
-      </FormField>
-      {evaluationTable && (
-        <>
-          <FormField label="Applicant field">
-            <FieldPickerSynced
-              allowedTypes={[FieldType.MULTIPLE_RECORD_LINKS]}
-              globalConfigKey={['presets', preset.name, 'evaluationApplicantField']}
-              table={evaluationTable}
-            />
-          </FormField>
-          <FormField label="Bucket classification field">
-            <FieldPickerSynced
-              allowedTypes={[FieldType.MULTILINE_TEXT]}
-              globalConfigKey={['presets', preset.name, 'bucketClassificationField']}
-              table={evaluationTable}
-            />
-          </FormField>
-          <FormField label="(optional) Logs field">
-            <FieldPickerSynced
-              allowedTypes={[FieldType.SINGLE_LINE_TEXT, FieldType.MULTILINE_TEXT, FieldType.RICH_TEXT]}
-              globalConfigKey={['presets', preset.name, 'evaluationLogsField']}
-              table={evaluationTable}
-              shouldAllowPickingNone={true}
-            />
-          </FormField>
-        </>
-      )}
-
-      <FormField label="Bucket table">
-        <TablePickerSynced
-          globalConfigKey={['presets', preset.name, 'bucketTableId']}
-          onChange={() => {
-            globalConfig.setAsync(['presets', preset.name, 'bucketViewId'], '');
-          }}
-        />
-      </FormField>
-      {bucketTable && (
-        <>
-          <FormField label="Bucket view">
-            <ViewPickerSynced globalConfigKey={['presets', preset.name, 'bucketViewId']} table={bucketTable} />
-          </FormField>
-          <div className="mb-4">
-            <SelectedBuckets preset={preset} />
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
 
       <Button type="button" variant="primary" icon="play" onClick={run} disabled={running}>
         Run
