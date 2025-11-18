@@ -94,7 +94,7 @@ const extractRankedBuckets = (text: string, rankingKeyword = 'BUCKET_RANKINGS') 
     return match[1]?.trim() || '';
   }
 
-  throw new Error(`Missing bucket ranking (${rankingKeyword})`);
+  throw new Error(`Missing bucket ranking (${rankingKeyword})\n\nFull response:\n${text}`);
 };
 
 const evaluateItem = async (applicantString: string, bucketContext: string) => {
