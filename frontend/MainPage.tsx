@@ -1,8 +1,9 @@
 import { globalConfig } from '@airtable/blocks';
 import { Field, FieldType } from '@airtable/blocks/models';
 import {
-  Box,
   Button,
+  CellRenderer,
+  expandRecord,
   FieldPicker,
   FieldPickerSynced,
   FormField,
@@ -178,9 +179,7 @@ export const MainPage = () => {
               <FormField label="Bucket view">
                 <ViewPickerSynced globalConfigKey={['presets', preset.name, 'bucketViewId']} table={bucketTable} />
               </FormField>
-              <div className="mb-4">
-                <SelectedBuckets preset={preset} />
-              </div>
+              <SelectedBuckets preset={preset} />
             </>
           )}
         </div>
@@ -274,7 +273,12 @@ const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
   const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
 
   // TODO: make fields configurable
-  const records = useRecords(bucketView ?? bucketTable, { fields: ['Bucket', 'Description'] });
+  const bucket = bucketTable.getFieldByNameIfExists('Bucket');
+  const description = bucketTable.getFieldByNameIfExists('Description');
+
+  const fields = [bucket, description].filter((f): f is Field => f != null);
+
+  const records = useRecords(bucketView ?? bucketTable, { fields });
   // TODO: see if there is a way to just load selected records? I can't find a way looking at the docs? Seems crazy to
   // have to get all and then filter.
   const selectedRecords = records.filter((record) => cursor.selectedRecordIds.includes(record.id));
@@ -288,10 +292,22 @@ const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
   }
 
   return (
-    <Box marginY={2}>
+    <ul className="flex flex-col gap-2">
       {selectedRecords.map((record) => (
-        <Text key={record.id}>• {record.getCellValueAsString('Bucket')}</Text>
+        <li key={record.id}>
+          <button className="w-full rounded-md border bg-white p-2 shadow" onClick={() => expandRecord(record)}>
+            <div className="flex flex-col items-start gap-2">
+              <Text className="text-sm font-medium">{record.name}</Text>
+              <CellRenderer record={record} field={bucket} />
+              {description && (
+                <div className="whitespace-pre-line text-left text-sm">
+                  {record.getCellValueAsString(description.id)}
+                </div>
+              )}
+            </div>
+          </button>
+        </li>
       ))}
-    </Box>
+    </ul>
   );
 };
