@@ -117,7 +117,12 @@ Before stating your rating, first explain your reasoning thinking step by step. 
 BUCKET_RANKINGS
 Bucket A: 90%
 Bucket B: 75%
-Bucket C: 40%`,
+Bucket C: 40%
+
+---
+
+Note that your output length is limited to 1_000 tokens, so be concise in your reasoning.
+`,
     },
   ];
   const completion = await getChatCompletion(prompt);
