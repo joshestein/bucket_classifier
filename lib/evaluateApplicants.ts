@@ -87,11 +87,11 @@ const evaluateApplicant = async (
 
 // TODO: test if returning response in JSON is better
 const extractRankedBuckets = (text: string, rankingKeyword = 'BUCKET_RANKINGS') => {
-  const regex = new RegExp(`${rankingKeyword}\\s*\\n((?:.+:\\s*\\d+%\\s*\\n?)+)`, 'mi');
+  const regex = new RegExp(`${rankingKeyword}\\s*\\n((?:.+:\\s*\\d+%\\s*\\n?)*)`, 'mi');
   const match = text.match(regex);
 
-  if (match && match[1]) {
-    return match[1].trim();
+  if (match) {
+    return match[1]?.trim() || '';
   }
 
   throw new Error(`Missing bucket ranking (${rankingKeyword})`);
