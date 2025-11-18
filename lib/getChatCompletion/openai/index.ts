@@ -1,6 +1,6 @@
 import pLimit from 'p-limit';
-import { openAiRequestConcurrency, openAiApiKey, openAiModel, openAiOrganisation } from './config';
 import { GetChatCompletion } from '..';
+import { openAiApiKey, openAiModel, openAiOrganisation, openAiRequestConcurrency } from './config';
 
 const globalRateLimit = pLimit(openAiRequestConcurrency);
 
@@ -16,7 +16,7 @@ export const getChatCompletion: GetChatCompletion = async (messages) => {
       body: JSON.stringify({
         model: openAiModel,
         messages: messages,
-        max_tokens: 500,
+        max_tokens: 1000,
       }),
     });
 
