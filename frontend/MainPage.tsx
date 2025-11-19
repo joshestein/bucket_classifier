@@ -1,5 +1,5 @@
 import { globalConfig } from '@airtable/blocks';
-import { Field, FieldType } from '@airtable/blocks/models';
+import { Field, FieldType, type View } from '@airtable/blocks/models';
 import {
   Button,
   CellRenderer,
@@ -14,7 +14,7 @@ import {
   useBase,
   useCursor,
   useLoadable,
-  useRecords,
+  useRecordById,
   useWatchable,
   ViewPickerSynced,
 } from '@airtable/blocks/ui';
@@ -276,38 +276,51 @@ const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
   const bucket = bucketTable.getFieldByNameIfExists('Bucket');
   const description = bucketTable.getFieldByNameIfExists('Description');
 
-  const fields = [bucket, description].filter((f): f is Field => f != null);
-
-  const records = useRecords(bucketView ?? bucketTable, { fields });
-  // TODO: see if there is a way to just load selected records? I can't find a way looking at the docs? Seems crazy to
-  // have to get all and then filter.
-  const selectedRecords = records.filter((record) => cursor.selectedRecordIds.includes(record.id));
-
   if (cursor.activeTableId !== bucketTable.id) {
     return <Text className="font-bold">Switch to the “{bucketTable.name}” table to select buckets.</Text>;
   }
 
-  if (selectedRecords.length === 0) {
+  if (cursor.selectedRecordIds.length === 0) {
     return <Text className="font-bold">No rows selected. Select one or more bucket records.</Text>;
   }
 
   return (
     <ul className="flex flex-col gap-2">
-      {selectedRecords.map((record) => (
-        <li key={record.id}>
-          <button className="w-full rounded-md border bg-white p-2 shadow" onClick={() => expandRecord(record)}>
-            <div className="flex flex-col items-start gap-2">
-              <Text className="text-sm font-medium">{record.name}</Text>
-              <CellRenderer record={record} field={bucket} />
-              {description && (
-                <div className="whitespace-pre-line text-left text-sm">
-                  {record.getCellValueAsString(description.id)}
-                </div>
-              )}
-            </div>
-          </button>
-        </li>
+      {cursor.selectedRecordIds.map((recordId) => (
+        <SelectedBucketListItem
+          key={recordId}
+          view={bucketView}
+          recordId={recordId}
+          bucket={bucket}
+          description={description}
+        />
       ))}
     </ul>
+  );
+};
+
+interface SelectedBucketListItemProps {
+  view: View;
+  recordId: string;
+  bucket: Field;
+  description: Field;
+}
+
+const SelectedBucketListItem: React.FC<SelectedBucketListItemProps> = ({ view, recordId, bucket, description }) => {
+  const record = useRecordById(view, recordId, { fields: [bucket, description] });
+  if (!record) return null;
+
+  return (
+    <li key={record.id}>
+      <button className="w-full rounded-md border bg-white p-2 shadow" onClick={() => expandRecord(record)}>
+        <div className="flex flex-col items-start gap-2">
+          <Text className="text-sm font-medium">{record.name}</Text>
+          <CellRenderer record={record} field={bucket} />
+          {description && (
+            <div className="whitespace-pre-line text-left text-sm">{record.getCellValueAsString(description.id)}</div>
+          )}
+        </div>
+      </button>
+    </li>
   );
 };
