@@ -56,7 +56,9 @@ export const MainPage = () => {
       setResult('Getting applicant records...');
       const applicantView = applicantTable.getViewByIdIfExists(preset.applicantViewId);
       if (!applicantView) throw new Error('Could not access applicant table view');
-      const applicantRecords = await applicantView.selectRecordsAsync();
+      const applicantRecords = await applicantView.selectRecordsAsync({
+        fields: preset.applicantFields.map((f) => f.fieldId),
+      });
       setResult(renderPreviewText(applicantRecords.records.length));
 
       const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
