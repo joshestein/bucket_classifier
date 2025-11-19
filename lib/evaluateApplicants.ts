@@ -6,6 +6,9 @@ import { Preset } from './preset';
 
 type SetProgress = (updater: (prev: number) => number) => void;
 
+const MIN_CONFIDENCE_THRESHOLD = 30;
+const MAX_RETRIES = 3;
+
 /**
  * @returns array of promises, each expected to return an evaluation
  */
@@ -72,7 +75,7 @@ const evaluateApplicant = async (
         `Failed processing record on attempt ${error.attemptNumber} for applicant ${applicant.applicantId}: `,
         error,
       ),
-    retries: 3,
+    retries: MAX_RETRIES,
   });
   setProgress((prev) => prev + 1);
 
@@ -110,7 +113,7 @@ ${bucketContext}
 
 You should ignore general statements or facts about the world, and focus on what the applicant themselves has achieved. You do not need to structure your assessment similar to the answers the user has given.
 
-Rank the buckets by fit, with confidence scores (0-100%). Only include buckets where the confidence is at least 30%. If no buckets are a good fit, return an empty list.
+Rank the buckets by fit, with confidence scores (0-100%). Only include buckets where the confidence is at least ${MIN_CONFIDENCE_THRESHOLD}%. If no buckets are a good fit, return an empty list.
 
 Before stating your rating, first explain your reasoning thinking step by step. Then afterwards output your final answer in the following format:
 
