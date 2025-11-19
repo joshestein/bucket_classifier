@@ -23,6 +23,10 @@ import React, { useEffect, useState } from 'react';
 import { evaluateApplicants } from '../lib/evaluateApplicants';
 import { Preset, upsertPreset, useSelectedPreset } from '../lib/preset';
 
+// TODO: make fields configurable
+export const BUCKET_FIELD_NAME = 'Bucket';
+export const DESCRIPTION_FIELD_NAME = 'Description';
+
 const renderPreviewText = (numberOfItems: number) => {
   const timeEstimateMins = ((numberOfItems * 0.9) / 60).toFixed(1); // speed roughly for gpt-4-1106-preview, at 30 request concurrency
   const costEstimateGbp = (numberOfItems * 0.011).toFixed(2); // pricing roughly for gpt-4-1106-preview
@@ -63,7 +67,7 @@ export const MainPage = () => {
 
       const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
       if (!bucketView) throw new Error('Could not access bucket table view');
-      const allBuckets = await bucketView.selectRecordsAsync({ fields: ['Bucket', 'Description'] });
+      const allBuckets = await bucketView.selectRecordsAsync({ fields: [BUCKET_FIELD_NAME, DESCRIPTION_FIELD_NAME] });
       const selectedBuckets = allBuckets.records.filter((record) => preset.selectedBucketIds.includes(record.id));
 
       const evaluationWritingPromises = await Promise.allSettled(
@@ -274,9 +278,8 @@ const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
   const bucketTable = base.getTableById(preset.bucketTableId);
   const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
 
-  // TODO: make fields configurable
-  const bucket = bucketTable.getFieldByNameIfExists('Bucket');
-  const description = bucketTable.getFieldByNameIfExists('Description');
+  const bucket = bucketTable.getFieldByNameIfExists(BUCKET_FIELD_NAME);
+  const description = bucketTable.getFieldByNameIfExists(DESCRIPTION_FIELD_NAME);
 
   if (cursor.activeTableId !== bucketTable.id) {
     return <Text className="font-bold">Switch to the “{bucketTable.name}” table to select buckets.</Text>;

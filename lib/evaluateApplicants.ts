@@ -1,5 +1,6 @@
 import { Record as AirtableRecord, Table as AirtableTable } from '@airtable/blocks/models';
 import pRetry from 'p-retry';
+import { BUCKET_FIELD_NAME, DESCRIPTION_FIELD_NAME } from '../frontend/MainPage';
 import { Prompt } from './getChatCompletion';
 import { getChatCompletion } from './getChatCompletion/openai';
 import { Preset } from './preset';
@@ -49,7 +50,7 @@ const convertToPlainRecord = (applicant: AirtableRecord, preset: Preset): Record
 const extractBucketContext = (buckets: AirtableRecord[]): string => {
   return buckets
     .map((bucket) => {
-      return `### ${bucket.getCellValueAsString('Bucket')}\n\n${bucket.getCellValueAsString('Description')}`;
+      return `### ${bucket.getCellValueAsString(BUCKET_FIELD_NAME)}\n\n${bucket.getCellValueAsString(DESCRIPTION_FIELD_NAME)}`;
     })
     .join('\n\n');
 };
