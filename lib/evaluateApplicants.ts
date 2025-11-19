@@ -1,103 +1,138 @@
-import { Record as AirtableRecord, Table as AirtableTable } from "@airtable/blocks/models";
-import { Preset } from "./preset";
-import { Prompt } from "./getChatCompletion";
-import { getChatCompletion } from "./getChatCompletion/openai";
-import pRetry from 'p-retry'
+import { Record as AirtableRecord, Table as AirtableTable } from '@airtable/blocks/models';
+import pRetry from 'p-retry';
+import { BUCKET_FIELD_NAME, DESCRIPTION_FIELD_NAME } from '../frontend/MainPage';
+import { Prompt } from './getChatCompletion';
+import { getChatCompletion } from './getChatCompletion/openai';
+import { Preset } from './preset';
 
 type SetProgress = (updater: (prev: number) => number) => void;
+
+const MIN_CONFIDENCE_THRESHOLD = 30;
+const MAX_RETRIES = 3;
 
 /**
  * @returns array of promises, each expected to return an evaluation
  */
-export const evaluateApplicants = (applicants: AirtableRecord[], preset: Preset, setProgress: SetProgress): Promise<Record<string, unknown>>[] => {
-    return applicants.map(async (applicant) => {
-        const innerSetProgress: SetProgress = (updater) => {
-            setProgress(progress => progress + (1 / applicants.length) * updater(0))
-        }
-        const result: Record<string, unknown> = await evaluateApplicant(convertToPlainRecord(applicant, preset), preset, innerSetProgress)
-        result[preset.evaluationApplicantField] = [{ id: applicant.id }];
-        return result
-    })
-}
+export const evaluateApplicants = (
+  applicants: AirtableRecord[],
+  selectedBuckets: AirtableRecord[],
+  preset: Preset,
+  setProgress: SetProgress,
+): Promise<Record<string, unknown>>[] => {
+  return applicants.map(async (applicant) => {
+    const innerSetProgress: SetProgress = (updater) => {
+      setProgress((progress) => progress + (1 / applicants.length) * updater(0));
+    };
+    const result: Record<string, unknown> = await evaluateApplicant(
+      convertToPlainRecord(applicant, preset),
+      extractBucketContext(selectedBuckets),
+      preset,
+      innerSetProgress,
+    );
+    result[preset.evaluationApplicantField] = [{ id: applicant.id }];
+    return result;
+  });
+};
 
 const convertToPlainRecord = (applicant: AirtableRecord, preset: Preset): Record<string, string> => {
-    const record = {}
+  const record = {};
 
-    preset.applicantFields.forEach(field => {
-        const questionName = field.questionName ?? ((applicant as any).parentTable as AirtableTable).getFieldById(field.fieldId).name;
-        record[questionName] = applicant.getCellValueAsString(field.fieldId)
+  preset.applicantFields.forEach((field) => {
+    const questionName =
+      field.questionName ?? ((applicant as any).parentTable as AirtableTable).getFieldById(field.fieldId).name;
+    record[questionName] = applicant.getCellValueAsString(field.fieldId);
+    record['applicantId'] = applicant.id;
+  });
+
+  return record;
+};
+
+const extractBucketContext = (buckets: AirtableRecord[]): string => {
+  return buckets
+    .map((bucket) => {
+      return `### ${bucket.getCellValueAsString(BUCKET_FIELD_NAME)}\n\n${bucket.getCellValueAsString(DESCRIPTION_FIELD_NAME)}`;
     })
-
-    return record;
-}
+    .join('\n\n');
+};
 
 // TODO: test if plain JSON is better
 const stringifyApplicantForLLM = (applicant: Record<string, string>): string => {
-    return Object.entries(applicant)
-      .filter(([, value]) => value)
-      .map(([key, value]) => `### ${key}\n\n${value}`)
-      .join('\n\n');
-}
-
-const evaluateApplicant = async (applicant: Record<string, string>, preset: Preset, setProgress: SetProgress): Promise<Record<string, number | string>> => {
-    const logsByField = {};
-    const applicantString = stringifyApplicantForLLM(applicant)
-    const itemResults = await Promise.all(preset.evaluationFields.map(async ({ fieldId, criteria }) => {
-        // Retry-wrapper around processApplicationPrediction
-        // Common failure reasons:
-        // - the model doesn't follow instructions to output the ranking in the requested format
-        // - the model waffles on too long and hits the token limit
-        // - we hit rate limits, or just transient faults
-        // Retrying (with exponential backoff) appears to fix these problems
-        const { ranking, transcript } = await pRetry(
-            async () => evaluateItem(applicantString, criteria),
-            { onFailedAttempt: (error) => console.error(`Failed processing record on attempt ${error.attemptNumber} for criteria ${fieldId}: `, error) },
-        )
-        logsByField[fieldId] = `# ${fieldId}\n\n` + transcript;
-        setProgress(prev => prev + (1 / preset.evaluationFields.length))
-        return [fieldId, ranking] as const
-    }));
-    
-    const combined: Record<string, number | string> = Object.fromEntries(itemResults);
-    if (preset.evaluationLogsField) {
-        // We do this so that the logs are always in the same order, so it's easier to read over them and compare applicants
-        const logs = preset.evaluationFields.map(({ fieldId }) => {
-            return logsByField[fieldId];
-        }).join('\n\n');
-        combined[preset.evaluationLogsField] = logs;
-    }
-    return combined;
-}
-
-// TODO: test if returning response in JSON is better
-const extractFinalRanking = (text: string, rankingKeyword = 'FINAL_RANKING'): number => {
-    const regex = new RegExp(`${rankingKeyword}\\s*=\\s*([\\d\\.]+)`);
-    const match = text.match(regex);
-  
-    if (match && match[1]) {
-        const asInt = parseInt(match[1])
-        if (Math.abs(asInt - parseFloat(match[1])) > 0.01) {
-            throw new Error(`Non-integer final ranking: ${match[1]} (${rankingKeyword})`);
-        }
-        return parseInt(match[1]);
-    }
-  
-    throw new Error(`Missing final ranking (${rankingKeyword})`);
+  return Object.entries(applicant)
+    .filter(([, value]) => value)
+    .map(([key, value]) => `### ${key}\n\n${value}`)
+    .join('\n\n');
 };
 
-const evaluateItem = async (applicantString: string, criteriaString: string): Promise<{ transcript: string, ranking: number }> => {
-    const prompt: Prompt = [
-        { role: 'user', content: applicantString },
-        { role: 'system', content: `Evaluate the application above, based on the following rubric: ${criteriaString}
+const evaluateApplicant = async (
+  applicant: Record<string, string>,
+  bucketContext: string,
+  preset: Preset,
+  setProgress: SetProgress,
+): Promise<Record<string, number | string>> => {
+  const applicantString = stringifyApplicantForLLM(applicant);
+  const { buckets, transcript } = await pRetry(async () => evaluateItem(applicantString, bucketContext), {
+    onFailedAttempt: (error) =>
+      console.error(
+        `Failed processing record on attempt ${error.attemptNumber} for applicant ${applicant.applicantId}: `,
+        error,
+      ),
+    retries: MAX_RETRIES,
+  });
+  setProgress((prev) => prev + 1);
+
+  const results: Record<string, number | string> = {
+    [preset.bucketClassificationField]: buckets,
+  };
+  if (preset.evaluationLogsField) {
+    results[preset.evaluationLogsField] = transcript;
+  }
+  return results;
+};
+
+// TODO: test if returning response in JSON is better
+const extractRankedBuckets = (text: string, rankingKeyword = 'BUCKET_RANKINGS') => {
+  const regex = new RegExp(`${rankingKeyword}\\s*\\n((?:.+:\\s*\\d+%\\s*\\n?)*)`, 'mi');
+  const match = text.match(regex);
+
+  if (match) {
+    return match[1]?.trim() || '';
+  }
+
+  throw new Error(`Missing bucket ranking (${rankingKeyword})\n\nFull response:\n${text}`);
+};
+
+const evaluateItem = async (applicantString: string, bucketContext: string) => {
+  const prompt: Prompt = [
+    { role: 'user', content: applicantString },
+    {
+      role: 'system',
+      content: `Classify this applicant into one or more of the following buckets:
+      
+${bucketContext}
+
+---
 
 You should ignore general statements or facts about the world, and focus on what the applicant themselves has achieved. You do not need to structure your assessment similar to the answers the user has given.
 
-Before stating your rating, first explain your reasoning thinking step by step. Then afterwards output your final answer by stating 'FINAL_RANKING = ' and then the relevant integer between the minimum and maximum values in the rubric.` },
-    ];
-    const completion = await getChatCompletion(prompt);
-    const transcript = [...prompt, { role: 'assistant', content: completion }]
-        .map((message) => `## ${message.role}\n\n${message.content}`)
-        .join('\n\n');
-    const ranking = extractFinalRanking(completion);
-    return { transcript, ranking };
-}
+Rank the buckets by fit, with confidence scores (0-100%). Only include buckets where the confidence is at least ${MIN_CONFIDENCE_THRESHOLD}%. If no buckets are a good fit, return an empty list.
+
+Before stating your rating, first explain your reasoning thinking step by step. Then afterwards output your final answer in the following format:
+
+BUCKET_RANKINGS
+Bucket A: 90%
+Bucket B: 75%
+Bucket C: 40%
+
+---
+
+Note that your output length is limited to 1_000 tokens, so be concise in your reasoning.
+`,
+    },
+  ];
+  const completion = await getChatCompletion(prompt);
+  const transcript = [...prompt, { role: 'assistant', content: completion }]
+    .map((message) => `## ${message.role}\n\n${message.content}`)
+    .join('\n\n');
+  const buckets = extractRankedBuckets(completion);
+  return { transcript, buckets };
+};

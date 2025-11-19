@@ -1,4 +1,4 @@
-import { env } from "../../env";
+import { env } from '../../env';
 
 export const anthropicApiKey = env.ANTHROPIC_API_KEY;
 // Model to use: https://docs.anthropic.com/en/docs/models-overview

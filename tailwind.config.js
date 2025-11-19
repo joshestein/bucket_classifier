@@ -1,7 +1,7 @@
 module.exports = {
-    content: ["./frontend/**/*.{ts,tsx}"],
-    theme: {
-        extend: {},
-    },
-    plugins: [],
-}
+  content: ['./frontend/**/*.{ts,tsx}'],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};

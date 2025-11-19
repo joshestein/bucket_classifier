@@ -1,13 +1,14 @@
+import { Button, Dialog, FormField, Heading, Input, Select } from '@airtable/blocks/ui';
+import React, { useMemo, useState } from 'react';
 import {
-  Button,
-  Dialog,
-  FormField,
-  Heading,
-  Input,
-  Select,
-} from "@airtable/blocks/ui";
-import React, { useMemo, useState } from "react";
-import { defaultPreset, deletePreset, getPresets, getSelectedPreset, selectPreset, upsertPreset, useSelectedPreset } from "../../lib/preset";
+  defaultPreset,
+  deletePreset,
+  getPresets,
+  getSelectedPreset,
+  selectPreset,
+  upsertPreset,
+  useSelectedPreset,
+} from '../../lib/preset';
 
 const PresetChooser = () => {
   const selectedPreset = getSelectedPreset();
@@ -23,28 +24,25 @@ const PresetChooser = () => {
   }, [presets]);
 
   const [newPresetDialogOpen, setNewPresetDialogOpen] = useState(false);
-  const [newPresetName, setNewPresetName] = useState("");
+  const [newPresetName, setNewPresetName] = useState('');
 
   const closeNewPresetDialog = () => {
     setNewPresetDialogOpen(false);
-    setNewPresetName("");
+    setNewPresetName('');
   };
 
   const [, forceUpdate] = useState(0);
 
   return (
     <div className="flex items-center">
-      <span className="hidden sm:block mr-2">Preset:</span>
+      <span className="mr-2 hidden sm:block">Preset:</span>
       <div>
         <Select
           className="min-w-[5rem] rounded-r-none"
-          options={[
-            ...(presetOptions || []),
-            { label: "+ Create new preset", value: "new" },
-          ]}
+          options={[...(presetOptions || []), { label: '+ Create new preset', value: 'new' }]}
           value={selectedPreset.name}
           onChange={(value) => {
-            if (value === "new") {
+            if (value === 'new') {
               setNewPresetDialogOpen(true);
             } else {
               selectPreset(value as string);
@@ -57,17 +55,13 @@ const PresetChooser = () => {
             <Dialog.CloseButton />
             <Heading>Create new preset</Heading>
             <FormField label="Name">
-              <Input
-                autoFocus={true}
-                value={newPresetName}
-                onChange={(e) => setNewPresetName(e.target.value)}
-              />
+              <Input autoFocus={true} value={newPresetName} onChange={(e) => setNewPresetName(e.target.value)} />
             </FormField>
             <div className="flex w-full justify-end">
               <Button
                 onClick={() => {
                   closeNewPresetDialog();
-                  upsertPreset({ ...defaultPreset, name: newPresetName })
+                  upsertPreset({ ...defaultPreset, name: newPresetName });
                   selectPreset(newPresetName);
                   forceUpdate(Date.now());
                 }}
@@ -91,7 +85,7 @@ export const PresetManager = () => {
     setEditPresetName(selectedPreset.name);
     setEditPresetJson(JSON.stringify(selectedPreset));
     setEditPresetDialogOpen(true);
-  }
+  };
   const closeEditPresetDialog = () => {
     setEditPresetDialogOpen(false);
   };
@@ -103,14 +97,14 @@ export const PresetManager = () => {
       <PresetChooser />
       <Button
         icon="edit"
-        className={`bg-slate-200 text-slate-700 h-7 rounded-l-none border-solid border border-y-0 border-r-0 ${showDeletePreset ? "rounded-none" : ""}`}
+        className={`h-7 rounded-l-none border border-y-0 border-r-0 border-solid bg-slate-200 text-slate-700 ${showDeletePreset ? 'rounded-none' : ''}`}
         onClick={() => openEditPresetDialog()}
         aria-label="Edit preset"
       ></Button>
       {showDeletePreset && (
         <Button
           icon="trash"
-          className="bg-slate-200 text-slate-700 h-7 rounded-l-none border-solid border border-y-0 border-r-0 border-slate-700"
+          className="h-7 rounded-l-none border border-y-0 border-r-0 border-solid border-slate-700 bg-slate-200 text-slate-700"
           onClick={async () => {
             closeEditPresetDialog();
             deletePreset(selectedPreset.name);
@@ -125,27 +119,19 @@ export const PresetManager = () => {
             <Heading>Edit preset</Heading>
           </div>
           <FormField label="Name">
-            <Input
-              autoFocus={true}
-              value={editPresetName}
-              onChange={(e) => setEditPresetName(e.target.value)}
-            />
+            <Input autoFocus={true} value={editPresetName} onChange={(e) => setEditPresetName(e.target.value)} />
           </FormField>
           <FormField label="(advanced) Overwrite JSON">
-            <Input
-              autoFocus={true}
-              value={editPresetJson}
-              onChange={(e) => setEditPresetJson(e.target.value)}
-            />
+            <Input autoFocus={true} value={editPresetJson} onChange={(e) => setEditPresetJson(e.target.value)} />
           </FormField>
           <div className="flex w-full justify-end">
             <Button
               onClick={() => {
                 closeEditPresetDialog();
                 if (editPresetJson) {
-                  upsertPreset({ ...JSON.parse(editPresetJson), name: editPresetName }, selectedPreset.name)
+                  upsertPreset({ ...JSON.parse(editPresetJson), name: editPresetName }, selectedPreset.name);
                 } else {
-                  upsertPreset({ ...selectedPreset, name: editPresetName }, selectedPreset.name)
+                  upsertPreset({ ...selectedPreset, name: editPresetName }, selectedPreset.name);
                 }
               }}
             >
@@ -155,5 +141,5 @@ export const PresetManager = () => {
         </Dialog>
       )}
     </div>
-  )
-}
+  );
+};
