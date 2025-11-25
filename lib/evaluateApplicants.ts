@@ -70,7 +70,7 @@ const evaluateApplicant = async (
   setProgress: SetProgress,
 ): Promise<Record<string, number | string>> => {
   const applicantString = stringifyApplicantForLLM(applicant);
-  const { buckets, transcript } = await pRetry(async () => evaluateItem(applicantString, bucketContext), {
+  const { buckets, completion } = await pRetry(async () => evaluateItem(applicantString, bucketContext), {
     onFailedAttempt: (error) =>
       console.error(
         `Failed processing record on attempt ${error.attemptNumber} for applicant ${applicant.applicantId}: `,
@@ -84,7 +84,7 @@ const evaluateApplicant = async (
     [preset.bucketClassificationField]: buckets,
   };
   if (preset.evaluationLogsField) {
-    results[preset.evaluationLogsField] = transcript;
+    results[preset.evaluationLogsField] = completion;
   }
   return results;
 };
@@ -130,9 +130,8 @@ Note that your output length is limited to 1_000 tokens, so be concise in your r
     },
   ];
   const completion = await getChatCompletion(prompt);
-  const transcript = [...prompt, { role: 'assistant', content: completion }]
-    .map((message) => `## ${message.role}\n\n${message.content}`)
-    .join('\n\n');
   const buckets = extractRankedBuckets(completion);
-  return { transcript, buckets };
+  console.log(completion);
+
+  return { buckets, completion };
 };
