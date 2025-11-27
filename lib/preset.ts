@@ -9,6 +9,7 @@ export type Preset = {
   applicantFields: { fieldId: string; questionName?: string }[];
 
   bucketClassificationField: string;
+  bucketConfidenceField: string;
   bucketTableId: string;
   bucketViewId: string;
 
@@ -25,6 +26,7 @@ export const defaultPreset: Preset = {
   applicantFields: [],
 
   bucketClassificationField: '',
+  bucketConfidenceField: '',
   bucketTableId: 'tblEOijHQaV7BnHlh',
   bucketViewId: '',
 
