@@ -131,7 +131,5 @@ Note that your output length is limited to 1_000 tokens, so be concise in your r
   ];
   const completion = await getChatCompletion(prompt);
   const buckets = extractRankedBuckets(completion);
-  console.log(completion);
-
   return { buckets, completion };
 };
