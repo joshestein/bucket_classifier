@@ -49,6 +49,8 @@ export const MainPage = () => {
       if (!preset.applicantFields.length) throw new Error('No input fields selected');
       if (!preset.bucketClassificationField.length)
         throw new Error('No output field selected for bucket classification');
+      if (!preset.bucketConfidenceField.length)
+        throw new Error('No output field selected for bucket confidence scores');
 
       setResult('Getting applicant records...');
       const applicantView = applicantTable.getViewByIdIfExists(preset.applicantViewId);
