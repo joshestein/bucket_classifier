@@ -146,7 +146,7 @@ export const MainPage = () => {
               </FormField>
               <FormField label="Bucket classification field">
                 <FieldPickerSynced
-                  allowedTypes={[FieldType.MULTILINE_TEXT]}
+                  allowedTypes={[FieldType.MULTIPLE_RECORD_LINKS]}
                   globalConfigKey={['presets', preset.name, 'bucketClassificationField']}
                   table={evaluationTable}
                 />
