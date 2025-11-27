@@ -47,10 +47,9 @@ export const MainPage = () => {
       if (!bucketTable) throw new Error('Could not access bucket table');
       if (!evaluationTable) throw new Error('Could not access evaluation table');
       if (!preset.applicantFields.length) throw new Error('No input fields selected');
-      if (!preset.bucketClassificationField.length)
-        throw new Error('No output field selected for bucket classification');
-      if (!preset.bucketConfidenceField.length)
-        throw new Error('No output field selected for bucket confidence scores');
+      if (!preset.bucketFirstChoiceField.length) throw new Error('No output field for bucket first choice');
+      if (!preset.bucketFirstChoiceConfidenceField.length)
+        throw new Error('No output field selected for bucket first choice confidence scores');
 
       setResult('Getting applicant records...');
       const applicantView = applicantTable.getViewByIdIfExists(preset.applicantViewId);
