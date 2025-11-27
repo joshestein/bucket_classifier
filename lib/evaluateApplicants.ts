@@ -70,7 +70,7 @@ const evaluateApplicant = async (
   bucketContext: string,
   preset: Preset,
   setProgress: SetProgress,
-): Promise<Record<string, number | string | string[]>> => {
+): Promise<Record<string, number | string | Array<{ id: string }>>> => {
   const applicantString = stringifyApplicantForLLM(applicant);
   const { buckets: llmBuckets, completion } = await pRetry(async () => evaluateItem(applicantString, bucketContext), {
     onFailedAttempt: (error) =>
@@ -84,27 +84,37 @@ const evaluateApplicant = async (
 
   const bucketMap = new Map(buckets.map((bucket) => [bucket.getCellValueAsString(BUCKET_FIELD_NAME), bucket.id]));
   const airtableBuckets = [];
-  const matchedLines = [];
+  const airtableConfidences = [];
 
   for (const line of llmBuckets.split('\n')) {
     const trimmedLine = line.trim();
     if (!trimmedLine) continue;
-    const name = trimmedLine.split(':').map((part) => part.trim())[0];
+    const [name, confidence] = trimmedLine.split(':').map((part) => part.trim());
 
     // We need to link each LLM output bucket with the actual Airtable record
     // An alternative is to output a new evaluation row for each bucket
     const airtableBucketId = bucketMap.get(name);
     if (airtableBucketId) {
       airtableBuckets.push({ id: airtableBucketId });
-      matchedLines.push(trimmedLine);
+      airtableConfidences.push(confidence);
     } else {
       console.warn(`Bucket "${name}" not found in Airtable buckets`);
     }
   }
-  const results: Record<string, number | string | string[]> = {
-    [preset.bucketClassificationField]: airtableBuckets,
-    [preset.bucketConfidenceField]: matchedLines.join('\n'),
-  };
+  const results: Record<string, number | string | Array<{ id: string }>> = {};
+  console.log(airtableBuckets, airtableConfidences);
+
+  if (airtableBuckets[0]) {
+    // Must be an array to link to another record
+    results[preset.bucketFirstChoiceField] = [airtableBuckets[0]];
+    results[preset.bucketFirstChoiceConfidenceField] = airtableConfidences[0];
+  }
+
+  if (preset.bucketSecondChoiceField && preset.bucketSecondChoiceConfidenceField && airtableBuckets[1]) {
+    // Must be an array to link to another record
+    results[preset.bucketSecondChoiceField] = [airtableBuckets[1]];
+    results[preset.bucketSecondChoiceConfidenceField] = airtableConfidences[1];
+  }
 
   if (preset.evaluationLogsField) {
     results[preset.evaluationLogsField] = completion;
