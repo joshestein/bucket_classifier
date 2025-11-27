@@ -145,17 +145,31 @@ export const MainPage = () => {
                   table={evaluationTable}
                 />
               </FormField>
-              <FormField label="Bucket classification field">
+              <FormField label="First bucket field">
                 <FieldPickerSynced
                   allowedTypes={[FieldType.MULTIPLE_RECORD_LINKS]}
-                  globalConfigKey={['presets', preset.name, 'bucketClassificationField']}
+                  globalConfigKey={['presets', preset.name, 'bucketFirstChoiceField']}
                   table={evaluationTable}
                 />
               </FormField>
-              <FormField label="Bucket confidence field">
+              <FormField label="First bucket confidence field">
                 <FieldPickerSynced
                   allowedTypes={[FieldType.MULTILINE_TEXT, FieldType.SINGLE_LINE_TEXT]}
-                  globalConfigKey={['presets', preset.name, 'bucketConfidenceField']}
+                  globalConfigKey={['presets', preset.name, 'bucketFirstChoiceConfidenceField']}
+                  table={evaluationTable}
+                />
+              </FormField>
+              <FormField label="Second bucket field">
+                <FieldPickerSynced
+                  allowedTypes={[FieldType.MULTIPLE_RECORD_LINKS]}
+                  globalConfigKey={['presets', preset.name, 'bucketSecondChoiceField']}
+                  table={evaluationTable}
+                />
+              </FormField>
+              <FormField label="Second bucket confidence field">
+                <FieldPickerSynced
+                  allowedTypes={[FieldType.MULTILINE_TEXT, FieldType.SINGLE_LINE_TEXT]}
+                  globalConfigKey={['presets', preset.name, 'bucketSecondChoiceConfidenceField']}
                   table={evaluationTable}
                 />
               </FormField>
