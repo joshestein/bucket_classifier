@@ -15,7 +15,7 @@ const MAX_RETRIES = 3;
  */
 export const evaluateApplicants = (
   applicants: AirtableRecord[],
-  selectedBuckets: AirtableRecord[],
+  buckets: AirtableRecord[],
   preset: Preset,
   setProgress: SetProgress,
 ): Promise<Record<string, unknown>>[] => {
@@ -25,7 +25,7 @@ export const evaluateApplicants = (
     };
     const result: Record<string, unknown> = await evaluateApplicant(
       convertToPlainRecord(applicant, preset),
-      extractBucketContext(selectedBuckets),
+      extractBucketContext(buckets),
       preset,
       innerSetProgress,
     );

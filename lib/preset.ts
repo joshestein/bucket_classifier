@@ -11,7 +11,6 @@ export type Preset = {
   bucketClassificationField: string;
   bucketTableId: string;
   bucketViewId: string;
-  selectedBucketIds: string[];
 
   evaluationTableId: string;
   evaluationApplicantField: string;
@@ -28,7 +27,6 @@ export const defaultPreset: Preset = {
   bucketClassificationField: '',
   bucketTableId: 'tblEOijHQaV7BnHlh',
   bucketViewId: '',
-  selectedBucketIds: [],
 
   evaluationTableId: 'tblqqU2PPOCeRbQoj',
   evaluationApplicantField: 'fldAVaTU0Btgt1i3p',

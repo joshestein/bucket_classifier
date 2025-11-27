@@ -1,9 +1,7 @@
 import { globalConfig } from '@airtable/blocks';
-import { Field, FieldType, type View } from '@airtable/blocks/models';
+import { Field, FieldType } from '@airtable/blocks/models';
 import {
   Button,
-  CellRenderer,
-  expandRecord,
   FieldPicker,
   FieldPickerSynced,
   FormField,
@@ -12,14 +10,10 @@ import {
   TablePickerSynced,
   Text,
   useBase,
-  useCursor,
-  useLoadable,
-  useRecordById,
-  useWatchable,
   ViewPickerSynced,
 } from '@airtable/blocks/ui';
 import pRetry from 'p-retry';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { evaluateApplicants } from '../lib/evaluateApplicants';
 import { Preset, upsertPreset, useSelectedPreset } from '../lib/preset';
 
@@ -53,7 +47,6 @@ export const MainPage = () => {
       if (!bucketTable) throw new Error('Could not access bucket table');
       if (!evaluationTable) throw new Error('Could not access evaluation table');
       if (!preset.applicantFields.length) throw new Error('No input fields selected');
-      if (!preset.selectedBucketIds.length) throw new Error('No buckets selected');
       if (!preset.bucketClassificationField.length)
         throw new Error('No output field selected for bucket classification');
 
@@ -68,10 +61,9 @@ export const MainPage = () => {
       const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
       if (!bucketView) throw new Error('Could not access bucket table view');
       const allBuckets = await bucketView.selectRecordsAsync({ fields: [BUCKET_FIELD_NAME, DESCRIPTION_FIELD_NAME] });
-      const selectedBuckets = allBuckets.records.filter((record) => preset.selectedBucketIds.includes(record.id));
 
       const evaluationWritingPromises = await Promise.allSettled(
-        evaluateApplicants(applicantRecords.records, selectedBuckets, preset, setProgress).map(
+        evaluateApplicants(applicantRecords.records, allBuckets.records, preset, setProgress).map(
           async (evaluationPromise) => {
             const evaluation = await evaluationPromise;
             console.log(
@@ -185,7 +177,6 @@ export const MainPage = () => {
               <FormField label="Bucket view">
                 <ViewPickerSynced globalConfigKey={['presets', preset.name, 'bucketViewId']} table={bucketTable} />
               </FormField>
-              <SelectedBuckets preset={preset} />
             </>
           )}
         </div>
@@ -252,80 +243,5 @@ const ApplicantFieldEditor: React.FC<FieldEditorProps> = ({ preset, index }) => 
         />
       </FormField>
     </div>
-  );
-};
-
-interface SelectedBucketsProps {
-  preset: Preset;
-}
-
-const SelectedBuckets: React.FC<SelectedBucketsProps> = ({ preset }) => {
-  const base = useBase();
-  const cursor = useCursor();
-  useLoadable(cursor);
-  // Re-render whenever the selected records change.
-  useWatchable(cursor, ['selectedRecordIds']);
-
-  useEffect(() => {
-    const currentIds = preset.selectedBucketIds || [];
-    const newIds = cursor.selectedRecordIds || [];
-
-    if (currentIds.length !== newIds.length || !newIds.every((id) => currentIds.includes(id))) {
-      globalConfig.setAsync(['presets', preset.name, 'selectedBucketIds'], newIds);
-    }
-  }, [preset.name, preset.selectedBucketIds, cursor.selectedRecordIds]);
-
-  const bucketTable = base.getTableById(preset.bucketTableId);
-  const bucketView = bucketTable.getViewByIdIfExists(preset.bucketViewId);
-
-  const bucket = bucketTable.getFieldByNameIfExists(BUCKET_FIELD_NAME);
-  const description = bucketTable.getFieldByNameIfExists(DESCRIPTION_FIELD_NAME);
-
-  if (cursor.activeTableId !== bucketTable.id) {
-    return <Text className="font-bold">Switch to the “{bucketTable.name}” table to select buckets.</Text>;
-  }
-
-  if (cursor.selectedRecordIds.length === 0) {
-    return <Text className="font-bold">No rows selected. Select one or more bucket records.</Text>;
-  }
-
-  return (
-    <ul className="flex flex-col gap-2">
-      {cursor.selectedRecordIds.map((recordId) => (
-        <SelectedBucketListItem
-          key={recordId}
-          view={bucketView}
-          recordId={recordId}
-          bucket={bucket}
-          description={description}
-        />
-      ))}
-    </ul>
-  );
-};
-
-interface SelectedBucketListItemProps {
-  view: View;
-  recordId: string;
-  bucket: Field;
-  description: Field;
-}
-
-const SelectedBucketListItem: React.FC<SelectedBucketListItemProps> = ({ view, recordId, bucket, description }) => {
-  const record = useRecordById(view, recordId, { fields: [bucket, description] });
-  if (!record) return null;
-
-  return (
-    <li key={record.id}>
-      <button className="w-full rounded-md border bg-white p-2 shadow" onClick={() => expandRecord(record)}>
-        <div className="flex flex-col items-start gap-2">
-          <Text className="text-sm font-medium">{record.name}</Text>
-          <CellRenderer record={record} field={bucket} />
-          {description && (
-            <div className="whitespace-pre-line text-left text-sm">{record.getCellValueAsString(description.id)}</div>
-          )}
-        </div>
-      </button>
-    </li>
   );
 };
