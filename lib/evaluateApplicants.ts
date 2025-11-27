@@ -25,6 +25,7 @@ export const evaluateApplicants = (
     };
     const result: Record<string, unknown> = await evaluateApplicant(
       convertToPlainRecord(applicant, preset),
+      buckets,
       extractBucketContext(buckets),
       preset,
       innerSetProgress,
@@ -65,12 +66,13 @@ const stringifyApplicantForLLM = (applicant: Record<string, string>): string => 
 
 const evaluateApplicant = async (
   applicant: Record<string, string>,
+  buckets: AirtableRecord[],
   bucketContext: string,
   preset: Preset,
   setProgress: SetProgress,
-): Promise<Record<string, number | string>> => {
+): Promise<Record<string, number | string | string[]>> => {
   const applicantString = stringifyApplicantForLLM(applicant);
-  const { buckets, completion } = await pRetry(async () => evaluateItem(applicantString, bucketContext), {
+  const { buckets: llmBuckets, completion } = await pRetry(async () => evaluateItem(applicantString, bucketContext), {
     onFailedAttempt: (error) =>
       console.error(
         `Failed processing record on attempt ${error.attemptNumber} for applicant ${applicant.applicantId}: `,
