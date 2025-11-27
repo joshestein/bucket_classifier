@@ -87,14 +87,16 @@ const evaluateApplicant = async (
   const matchedLines = [];
 
   for (const line of llmBuckets.split('\n')) {
-    const name = line.split(':').map((part) => part.trim())[0];
+    const trimmedLine = line.trim();
+    if (!trimmedLine) continue;
+    const name = trimmedLine.split(':').map((part) => part.trim())[0];
 
     // We need to link each LLM output bucket with the actual Airtable record
     // An alternative is to output a new evaluation row for each bucket
     const airtableBucketId = bucketMap.get(name);
     if (airtableBucketId) {
       airtableBuckets.push({ id: airtableBucketId });
-      matchedLines.push(line);
+      matchedLines.push(trimmedLine);
     } else {
       console.warn(`Bucket "${name}" not found in Airtable buckets`);
     }
