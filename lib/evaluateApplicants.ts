@@ -82,9 +82,28 @@ const evaluateApplicant = async (
   });
   setProgress((prev) => prev + 1);
 
-  const results: Record<string, number | string> = {
-    [preset.bucketClassificationField]: buckets,
+  const bucketMap = new Map(buckets.map((bucket) => [bucket.getCellValueAsString(BUCKET_FIELD_NAME), bucket.id]));
+  const airtableBuckets = [];
+  const matchedLines = [];
+
+  for (const line of llmBuckets.split('\n')) {
+    const name = line.split(':').map((part) => part.trim())[0];
+
+    // We need to link each LLM output bucket with the actual Airtable record
+    // An alternative is to output a new evaluation row for each bucket
+    const airtableBucketId = bucketMap.get(name);
+    if (airtableBucketId) {
+      airtableBuckets.push({ id: airtableBucketId });
+      matchedLines.push(line);
+    } else {
+      console.warn(`Bucket "${name}" not found in Airtable buckets`);
+    }
+  }
+  const results: Record<string, number | string | string[]> = {
+    [preset.bucketClassificationField]: airtableBuckets,
+    [preset.bucketConfidenceField]: matchedLines.join('\n'),
   };
+
   if (preset.evaluationLogsField) {
     results[preset.evaluationLogsField] = completion;
   }
